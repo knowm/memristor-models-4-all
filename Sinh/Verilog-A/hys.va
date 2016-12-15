@@ -1,0 +1,23 @@
+// A device with hysteresis
+`include "disciplines.vams"
+`define attr(txt) (*txt*)
+
+module hys(p, n);
+
+    inout p, n;
+    electrical p, n, ns;
+
+    parameter real R = 1e3 from (0:inf) `attr(info="R" type="instance");
+    parameter real k = 1 from (0:inf) `attr(info="k" type="instance");
+    parameter real tau = 1e-5 from (0:inf) `attr(info="tau" type="instance");
+
+    real s;
+
+    analog begin
+        s = V(ns, n);
+        I(p, n)  <+ V(p, n)/R * (1+tanh(k*s));
+        I(ns, n) <+ V(p, n) - pow(s, 3) + s;
+        I(ns, n) <+ ddt(-tau*s);
+    end
+
+endmodule

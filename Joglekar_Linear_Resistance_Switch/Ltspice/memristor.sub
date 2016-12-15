@@ -1,0 +1,54 @@
+***********************************************
+* HP Memristor SPICE Model
+* For Transient Analysis only
+* created by Zdenek and Dalibor Biolek
+***********************************************
+* Ron, Roff - Resistance in ON / OFF States
+*
+* Rinit - Resistance at T=0
+*
+* D - Width of the thin film
+*
+* uv - Migration coefficient
+*
+* p - Parameter of the WINDOW-function for
+*     modeling nonlinear boundary conditions
+*
+* x - W/D Ratio, W is the actual width
+*     of the doped area (from 0 to D)
+*
+***********************************************
+.SUBCKT memristor plus minus PARAMS:
++ Ron=100 Roff=16K Rinit=11K D=10N uv=10F p=1
+
+***********************************************
+* DIFFERENTIAL EQUATION MODELING *
+***********************************************
+Gx 0 x value={I(Emem)*uv*Ron/D**2*f(V(x),p)}
+Cx x 0 1 IC={(Roff-Rinit)/(Roff-Ron)}
+Raux x 0 1000000
+
+***********************************************
+* RESISTIVE PORT OF THE MEMRISTOR *
+***********************************************
+Emem plus aux value={-I(Emem)*V(x)*(Roff-Ron)}
+Roff aux minus {Roff}
+
+***********************************************
+* FLUX COMPUTATION *
+***********************************************
+Eflux flux 0 value={SDT(V(plus,minus))}
+
+***********************************************
+* CHARGE COMPUTATION *
+***********************************************
+Echarge charge 0 value={SDT(I(Emem))}
+
+***********************************************
+* WINDOW FUNCTIONS
+* FOR NONLINEAR DRIFT MODELING *
+***********************************************
+* window function, according to Joglekar
+.func f(x,p)={1-(2*x-1)**(2*p)}
+
+.ENDS memristor

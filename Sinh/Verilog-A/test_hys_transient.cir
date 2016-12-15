@@ -1,0 +1,10 @@
+* test hys.va in transient
+
+V1 1 0 1 sin(0 0.7 1k)
+Yhys H1 1 0
+
+* transient simulation
+.tran 1u 2m
+.print tran V(1) I(V1) N(Yhys!H1_ns)
+
+

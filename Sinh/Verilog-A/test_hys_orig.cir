@@ -1,0 +1,25 @@
+* test hys.va in DC, TRAN and Homotopy
+
+V1 1 0 1 sin(0 0.7 1k)
+Yhys H1 1 0
+
+* DC analysis
+* .dc V1 1 -1 0.01
+* .print dc V(1) I(V1) N(Yhys!H1_ns)
+
+
+* transient simulation
+.tran 1u 2m
+.print tran V(1) I(V1) N(Yhys!H1_ns)
+
+
+* homotopy analysis
+*.dc V1 .7 .7 1
+*.print homotopy V(1) I(V1) N(Yhys!H1_ns)
+.options nonlin continuation=1
+.options loca stepper=ARC
++ predictor=1 stepcontrol=1
++ conparam=V1:DCV0
++ initialvalue=-1.0 minvalue=-1.0 maxvalue=1.0
++ initialstepsize=0.01 minstepsize=1.0e-8 maxstepsize=0.1
++ aggressiveness=0.1

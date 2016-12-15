@@ -1,0 +1,173 @@
+`include "disciplines.vams"
+`include "constants.vams"
+
+`define X_BORDER_BUMP 10e-18
+
+`define attr(txt) (*txt*)
+
+module mssmemristor (p,n);
+
+    inout p,n;
+    electrical p,n;
+
+    parameter real G_OFF=1E-6 from (0:inf) `attr(info="G_OFF" type="instance");
+    parameter real G_ON=10E-6 from (0:inf) `attr(info="G_ON" type="instance");
+    parameter real V_ON=.2 from (0:inf) `attr(info="V_ON" type="instance");
+    parameter real V_OFF=.2 from (0:inf) `attr(info="V_OFF" type="instance");
+    parameter real TC=0.0001 from (0:inf) `attr(info="TC" type="instance");
+    parameter real N=10e5 from [0:inf) `attr(info="N" type="instance");
+    parameter real N_ON_OFF_RATIO=0 from [0:1] `attr(info="N_ON_OFF_RATIO" type="instance");
+
+    // local variables that should persist over time steps
+    real g_off;
+    real g_on;
+    real Nb;
+    real time_last;
+    real global_on;
+
+    // local variables that hold temporary values
+    real G;
+    real time;
+    real time_delta;
+
+    real exponent;
+    real alpha;
+    real Pa;
+    real Pb;
+
+    real num_ON_to_OFF;
+
+   analog
+     begin
+      @(initial_instance)
+        begin
+          g_off = G_OFF / N;
+          g_on = G_ON / N;
+          Nb = (1 - N_ON_OFF_RATIO) * N;
+          time_last = 0;
+          global_on=0;
+        end      
+  
+
+        $strobe ("****************");
+        time = $realtime;
+        time_delta = time - time_last;
+
+        $strobe ("V(p,n) = ", V(p,n));
+
+
+
+
+
+
+
+
+
+
+        // Probability from OFF to ON state
+        exponent = -1 * (V(p,n) - V_ON) / $vt;
+        alpha = time_delta / TC;
+        Pa = alpha / (1.0 + (limexp(exponent)));
+
+        if (Pa > 1.0) begin
+          Pa = 1.0;
+        end
+        else if (Pa < 0.0) begin
+          Pa = 0.0;
+        end
+        $strobe ("Pa = ", Pa);
+
+
+
+
+
+
+        // Probability from ON to OFF state
+        exponent = -1 * (V(p,n) + V_OFF) / $vt;
+        alpha = time_delta / TC;
+        Pb = alpha * (1 - 1 / ((1.0 + (limexp(exponent)))));
+
+        if (Pb > 1.0) begin
+          Pb = 1.0;
+        end
+        else if (Pb < 0.0) begin
+          Pb = 0.0;
+        end
+        $strobe ("Pb = ", Pb);
+
+
+
+        num_ON_to_OFF= $dist_normal(1,0,1n,"global");
+
+
+
+        if(Pa > .6 && global_on < .5) begin
+            Nb = 0;
+            global_on = 1;
+        end
+        else if (Pb > .6 && global_on > .5) begin
+            Nb = N;
+            global_on = 0;
+        end
+
+
+
+
+
+
+
+        // conductance
+        G = Nb * g_off + (N - Nb) * g_on;
+        $strobe ("G = ", G);
+
+
+
+        I(p,n) <+ -1.0*G*V(p,n);
+
+        time_last = time;
+
+
+
+     end
+endmodule
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

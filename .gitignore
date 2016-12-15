@@ -1,0 +1,9 @@
+*.*prn
+*.*la
+*.*log
+*.*vams
+*.*.va.adms
+**.xml
+.libs/
+*.my
+

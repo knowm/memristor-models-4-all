@@ -1,0 +1,8 @@
+* test hys.va in DC forward
+
+V1 1 0 1 sin(0 0.7 1k)
+Yhys H1 1 0
+
+* DC analysis
+.dc V1 -1 1 0.01
+.print dc V(1) I(V1) N(Yhys!H1_ns)

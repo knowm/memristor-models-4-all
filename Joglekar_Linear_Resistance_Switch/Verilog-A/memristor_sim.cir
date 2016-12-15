@@ -1,0 +1,13 @@
+
+* Voltage Sources
+V1 1 0 SIN(0V 1.2V 1Hz)
+
+* Memristors
+YMEMRISTOR1 M1 1 0 
+
+* Analysis Command
+.TRAN 1ms 1s
+* Output
+.PRINT TRAN V(1) I(V1) 
+
+.END
