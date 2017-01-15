@@ -341,6 +341,13 @@ private:
   double      Tc_;
   double      N_;
   
+  // model parameters for generalized MSS model
+
+  double      Phi_;
+  double      SchottkyForwardAlpha_;
+  double      SchottkyForwardBeta_;
+  double      SchottkyReverseAlpha_;
+  double      SchottkyReverseBeta_;
 };
 
 
