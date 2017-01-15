@@ -1,0 +1,17 @@
+* Voltage Sources
+V1 1 0 SIN(0V 1.2V 1Hz)
+
+* Memristors
+ymemristor mr1 1 0 mrm1
+
+
+.MODEL mrm1 memristor level=3 a1=0.17 a2=0.17 b=0.05 vp=0.16 vn=0.15
++ ap=4000 an=4000 xp=0.3 xn=0.5 alphap=1 alphan=5 eta=1
+
+
+* Analysis Command
+.TRAN 1ms 1s
+* Output
+.PRINT TRAN V(1) I(V1) 
+
+.END
