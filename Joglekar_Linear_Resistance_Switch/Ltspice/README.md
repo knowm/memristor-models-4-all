@@ -4,7 +4,7 @@
 |---|---|---|
 |SPICE Subcircuit|SPICE|LTSpice|
 
-Other names: "The Ideal Memristor", "The nonlinear Dopant Drift", "The Resistance Switch" or "The HP Model"
+Other names: "The Ideal Memristor", "The Resistance Switch" or "The HP Model"
 
 ## Sources
 
