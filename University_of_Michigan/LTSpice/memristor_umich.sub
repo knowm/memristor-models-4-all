@@ -1,0 +1,45 @@
+* Memristor subcircuit developed by Chang et al.
+
+* Connections:
+* TE:  Top electrode
+* BE:  Bottom electrode
+* XSV: External connection to plot state variable
+*      that is not used otherwise
+
+.SUBCKT MEM_UMICH TE BE XSV 
+
+* Parameters:
+* alpha:      Prefactor for Schottky barrier
+* beta:       Exponent for Schottky barrier
+* gamma:      Prefactor for tunneling
+* delta:      Exponent for tunneling
+* xmax:       Maximum value of state variable
+* xmin:       Minimum value of state variable
+* drift_bit:  Binary value to switch the ionic drift in (1)
+*             or out (0) of the equation
+* lambda:     State variable multiplier
+* eta1, eta2: State variable exponential rates
+* tau:        Diffusion coefficient
+
+.param alpha=0.5e-6 beta=0.5 gamma=4e-6 delta=2 xmax=1 xmin=0
++drift_bit = 0 lambda=4.5 eta1=0.004 eta2=4 tau=10
+
+.param cp={1}
+Cpvar XSV 0 {cp}
+
+* Rate equation for state variable
+Gx 0 XSV value={ trunc(V(TE,BE),cp*V(XSV))*lambda*(eta1*sinh(eta2*V(TE,BE))-
++drift_bit*cp*V(XSV)/tau) }
+
+.ic V(XSV) = 0.0
+
+* Auxiliary functions to limit the range of x
+.func sign2(var) {(sgn(var)+1)/2}
+.func trunc(var1,var2) {sign2(var1)*sign2(xmax-var2)+sign2(-
++var1)*sign2(var2-xmin)}
+
+* Memristor IV Relationship
+Gm TE BE value={(1-cp*V(XSV))*alpha*(1-exp(-
++beta*V(TE,BE)))+(cp*V(XSV))*gamma*sinh(delta*V(TE,BE))}
+
+.ENDS MEM_UMICH
