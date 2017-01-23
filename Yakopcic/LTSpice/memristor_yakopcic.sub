@@ -1,0 +1,55 @@
+* SPICE model for memristive devices
+* Created by Chris Yakopcic 
+* Last Update: 8/9/2011
+*
+* Connections:
+* TE - top electrode
+* BE - bottom electrode
+* XSV - External connection to plot state variable
+* that is not used otherwise
+
+.subckt MEM_YAKOPCIC TE BE XSV
+
+* Fitting parameters to model different devices
+* a1, a2, b:      Parameters for IV relationship
+* Vp, Vn:         Pos. and neg. voltage thresholds
+* Ap, An:         Multiplier for SV motion intensity
+* xp, xn:         Points where SV motion is reduced
+* alphap, alphan: Rate at which SV motion decays
+* xo:             Initial value of SV
+* eta:            SV direction relative to voltage
+
+*.params a1=0.17 a2=0.17 b=0.05 Vp=0.16 Vn=0.15 
+*+Ap=4000 An=4000 xp=0.3 xn=0.5 alphap=1 alphan=5 
+*+xo=0.11 eta=1
+
+.params a1=.17 a2=.17 b=0.05 Vp=.65 Vn=0.56 Ap=4000 
++An=4000 xp=0.3 xn=0.5 alphap=1 alphan=5 xo=0.11 eta=1
+
+* Multiplicitive functions to ensure zero state
+* variable motion at memristor boundaries
+.func wp(V) = xp/(1-xp) - V/(1-xp) + 1
+.func wn(V) = V/(1-xn)
+
+* Function G(V(t)) - Describes the device threshold
+.func G(V) = IF(V <= Vp, IF(V >= -Vn, 0, -An*(exp(-
++V)-exp(Vn))), Ap*(exp(V)-exp(Vp)))
+
+* Function F(V(t),x(t)) - Describes the SV motion 
+.func F(V1,V2) = IF(eta*V1 >= 0, IF(V2 >= xp, exp(-
++alphap*(V2-xp))*wp(V2) ,1), IF(V2 <= (1-xn), 
++exp(alphan*(V2+xn-1))*wn(V2) ,1))
+
+* IV Response - Hyperbolic sine due to MIM structure
+.func IVRel(V1,V2) = IF(V1 >= 0, a1*V2*sinh(b*V1),
++a2*V2*sinh(b*V1) )
+
+* Circuit to determine state variable
+* dx/dt = F(V(t),x(t))*G(V(t))
+Cx XSV 0 {1}
+.ic V(XSV) = xo
+Gx 0 XSV value={eta*F(V(TE,BE),V(XSV,0))*G(V(TE,BE))}
+* Current source for memristor IV response
+Gm TE BE value = {IVRel(V(TE,BE),V(XSV,0))}
+
+.ends MEM_YAKOPCIC
