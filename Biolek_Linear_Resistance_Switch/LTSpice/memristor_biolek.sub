@@ -1,0 +1,34 @@
+* HP Memristor SPICE Model Using Biolek Window
+
+* Connections:
+* TE:  Top electrode
+* BE:  Bottom electrode
+* XSV: External connection to plot state variable
+*      that is not used otherwise
+
+.SUBCKT MEM_BIOLEK TE BE XSV 
+
+* Ron:  Minimum device resistance
+* Roff: Maximum device resistance
+* D:    Width of the thin film
+* uv:   Dopant mobility
+* p:    Parameter for window function
+* x0:   State varaible initial value
+
+.params Ron=100 Roff=1K x0=.076 D=16N uv=40F p=7
+
+* Biolek Window Function
+.func f(V1,I1)={1-pow((V1-stp(-I1)),(2*p))}
+
+* Memristor I-V Relationship
+.func IVRel(V1,V2) = V1/(Ron*V2 + Roff*(1-V2))
+
+* Circuit to determine state variable
+Gx 0 XSV value={I(Gmem)*Ron*uv*f(V(XSV,0),I(Gmem))/pow(D,2)}
+Cx XSV 0 {1}
+.ic V(XSV) = x0
+
+* Current source representing memristor
+Gmem TE BE value={IVRel(V(TE,BE),V(XSV,0))}
+
+.ENDS MEM_BIOLEK
