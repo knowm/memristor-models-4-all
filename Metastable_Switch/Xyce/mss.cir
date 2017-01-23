@@ -4,8 +4,7 @@ V1 1 0 SIN(0V 0.5V 100Hz)
 * Memristors
 YMSS mr1 1 0 mrm1 Rinit=500
 
-*.MODEL mrm1 mss (level=1 Roff=1500 Ron=500 Voff=0.27 Von=0.27 TC=0.0001 N=1000)
-.MODEL mrm1 mss (level=1 Roff=1500 Ron=500 Voff=0.27 Von=0.27 TC=0.0001 N=1000 PHI=0.8 SFA=0.0008 SFB=4 SRA=0.0008 SRB=4)
+.MODEL mrm1 mss (level=1 Roff=1500 Ron=500 Voff=0.27 Von=0.27 TAU=0.0001 PHI=0.8 SFA=0.0008 SFB=4 SRA=0.0008 SRB=4)
 
 * Analysis Command
 .TRAN .1ms .04s
