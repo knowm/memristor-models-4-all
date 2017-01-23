@@ -1,5 +1,7 @@
 * Knowm Mean Metastable Switch Memristor SPICE Model
 
+* Copyright Tim Molter Knowm Inc. 2017
+
 * Connections:
 * TE:  Top electrode
 * BE:  Bottom electrode
@@ -24,7 +26,6 @@
 .func F(V1,V2) = (1/TAU)*((    1/(1+exp(-1/(T*boltz/echarge)*(V1-Von)))   )*(1-V2)-(    1-(1/(1+exp(-1/(T*boltz/echarge)*(V1+Voff))))    )*V2
 
 * Memristor I-V Relationship
-*.func IVRel(V1,V2) = V1/(Ron*V2 + Roff*(1-V2))
 .func IVRel(V1,V2) = V1*G(V2)
 
 * Circuit to determine state variable
