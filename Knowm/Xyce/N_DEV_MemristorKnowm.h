@@ -26,7 +26,7 @@
 
 //-----------------------------------------------------------------------------
 //
-// Purpose        : Implementation of the MSS memristor model.
+// Purpose        : Implementation of the Knowm MKnowm memristor model.
 //                  
 // Creator        : Tim Molter, Knowm Inc.
 //
@@ -34,8 +34,8 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef Xyce_N_DEV_MemristorMSS_h
-#define Xyce_N_DEV_MemristorMSS_h
+#ifndef Xyce_N_DEV_MemristorKnowm_h
+#define Xyce_N_DEV_MemristorKnowm_h
 
 #include <N_DEV_fwd.h>
 #include <N_DEV_Configuration.h>
@@ -46,20 +46,20 @@
 
 namespace Xyce {
 namespace Device {
-namespace MemristorMSS {
+namespace MemristorKnowm {
 
 class Model;
 class Instance;
 
 // sensitivity functor
 // not yet implemented.
-class MemristorMSSSensitivity : public baseSensitivity
+class MemristorKnowmSensitivity : public baseSensitivity
 {
   public:
-  MemristorMSSSensitivity() :
+  MemristorKnowmSensitivity() :
     baseSensitivity() {};
 
-  virtual ~MemristorMSSSensitivity() {};
+  virtual ~MemristorKnowmSensitivity() {};
 
   virtual void operator()(
     const ParameterBase &entity,
@@ -73,12 +73,12 @@ class MemristorMSSSensitivity : public baseSensitivity
     ) const ;
 };
 
-static MemristorMSSSensitivity memrSens;
+static MemristorKnowmSensitivity memrSens;
 
 struct Traits : public DeviceTraits<Model, Instance>
 {
-  static const char *name() {return "MemristorMSS";}
-  static const char *deviceTypeName() {return "YMSS level 1";}
+  static const char *name() {return "MemristorKnowm";}
+  static const char *deviceTypeName() {return "YKnowm level 1";}
   static int numNodes() {return 2;}
   static bool modelRequired() {return true;}
   static bool isLinearDevice() {return false;}
@@ -89,14 +89,14 @@ struct Traits : public DeviceTraits<Model, Instance>
 };
 
 //-----------------------------------------------------------------------------
-// Class         : Xyce::Device::MemristorMSS::Instance
+// Class         : Xyce::Device::MemristorKnowm::Instance
 // Purpose       :
 // Special Notes :
 // Creator       : Richard Schiek, Electrical Models & Simulations
 // Creation Date : 10/23/2014
 //-----------------------------------------------------------------------------
 //
-// MemristorMSS device instance class.
+// MemristorKnowm device instance class.
 //
 // An instance is created for each occurance of the device in the netlist.
 //
@@ -120,7 +120,7 @@ class Instance : public DeviceInstance
   friend class Model;
   friend class Traits;
   friend class Master;
-  friend class MemristorMSSSensitivity;
+  friend class MemristorKnowmSensitivity;
 
 public:
   Instance(
@@ -130,7 +130,7 @@ public:
      const FactoryBlock &      factory_block);
 
   //---------------------------------------------------------------------------
-  // Function      : Xyce::Device::MemristorMSS::Instance::~Instance
+  // Function      : Xyce::Device::MemristorKnowm::Instance::~Instance
   // Purpose       : destructor
   // Special Notes :
   // Scope         : public
@@ -151,7 +151,7 @@ private:
 public:
 
   //---------------------------------------------------------------------------
-  // Function      : Xyce::Device::MemristorMSS::Instance::getModel
+  // Function      : Xyce::Device::MemristorKnowm::Instance::getModel
   // Purpose       : destructor
   // Special Notes :
   // Scope         : public
@@ -161,7 +161,7 @@ public:
   //
   // Gets the resistor model that owns this instance.
   //
-  // @return reference to the owning MemristorMSS::Model
+  // @return reference to the owning MemristorKnowm::Model
   //
   // @author David G. Baur  Raytheon  Sandia National Laboratories 1355 
   // @date   Mon Aug 12 08:36:37 2013
@@ -181,7 +181,7 @@ public:
   virtual bool updatePrimaryState() /* override */;
 
 //---------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::Instance::jacobianStamp
+// Function      : Xyce::Device::MemristorKnowm::Instance::jacobianStamp
 // Purpose       :
 // Special Notes :
 // Scope         : public
@@ -215,13 +215,14 @@ public:
   virtual void setupPointers() /* override */;
 
 private:
-  static std::vector< std::vector<int> >  jacStamp; //< All MemristorMSS instances have a common Jacobian Stamp
+  static std::vector< std::vector<int> >  jacStamp; //< All MemristorKnowm instances have a common Jacobian Stamp
   static void initializeJacobianStamp();
 
   Model &     model_;                 //< Owning model
 
   // User-specified parameters:
   double      rInit_;
+  double      Temp_;  // instance temperature (TEMP)
 
   // Derived parameters:
   double      G;                      //< Conductance(1.0/ohms)
@@ -272,14 +273,14 @@ private:
 
 
 //-----------------------------------------------------------------------------
-// Class         : Xyce::Device::MemristorMSS::Model
+// Class         : Xyce::Device::MemristorKnowm::Model
 // Purpose       :
 // Special Notes :
 // Creator       : Richard Schiek, Electrical Models & Simulations
 // Creation Date : 10/23/2014
 //-----------------------------------------------------------------------------
 //
-// MemristorMSS model class
+// MemristorKnowm model class
 //
 class Model : public DeviceModel
 {
@@ -305,7 +306,7 @@ private:
 public:
 
   //---------------------------------------------------------------------------
-  // Function      : Xyce::Device::MemristorMSS::Model::addInstance
+  // Function      : Xyce::Device::MemristorKnowm::Model::addInstance
   // Purpose       :
   // Special Notes :
   // Scope         : public
@@ -332,16 +333,15 @@ public:
 private:
   InstanceVector      instanceContainer;            //< List of owned resistor instances
 
-  // model parameters for MSS model
+  // model parameters for Knowm model
 
   double      Roff_;
   double      Ron_;
   double      Voff_;
   double      Von_;
-  double      Tc_;
-  double      N_;
+  double      Tau_;
   
-  // model parameters for generalized MSS model
+  // model parameters for generalized Knowm model
 
   double      Phi_;
   double      SchottkyForwardAlpha_;
@@ -352,14 +352,14 @@ private:
 
 
 //-----------------------------------------------------------------------------
-// Class         : Xyce::Device::MemristorMSS::Master
+// Class         : Xyce::Device::MemristorKnowm::Master
 // Purpose       :
 // Special Notes :
 // Creator       : Richard Schiek, Electrical Models & Simulations
 // Creation Date : 10/23/2014 
 //-----------------------------------------------------------------------------
 //
-// MemristorMSS master
+// MemristorKnowm master
 //
 // The "master" class is the one that contains the updateState, loadDAEVectors
 // and loadDAEMatrices methods that are actually called when it is time to
@@ -370,7 +370,7 @@ private:
 // updatePrimaryState, loadDAEFVector/loadDAEQVector, and
 // loadDAEdFdx/loadDAEdQdx methods, respectively.
 //
-// For efficiency, the MemristorMSS class reimplements these methods to do the
+// For efficiency, the MemristorKnowm class reimplements these methods to do the
 // work directly, instead of calling instance-level functions.
 //
 class Master : public DeviceMaster<Traits>
@@ -381,7 +381,7 @@ class Master : public DeviceMaster<Traits>
 public:
 
   //---------------------------------------------------------------------------
-  // Function      : Xyce::Device::MemristorMSS::Master::Master
+  // Function      : Xyce::Device::MemristorKnowm::Master::Master
   // Purpose       :
   // Special Notes :
   // Scope         : public
@@ -389,7 +389,7 @@ public:
   // Creation Date : 10/23/2014
   //---------------------------------------------------------------------------
   //
-  // Construct a MemristorMSS Device.
+  // Construct a MemristorKnowm Device.
   //
   // @param configuration
   // @param factory_block
@@ -411,8 +411,8 @@ public:
 
 void registerDevice();
 
-} // namespace MemristorMSS
+} // namespace MemristorKnowm
 } // namespace Device
 } // namespace Xyce
 
-#endif // Xyce_N_DEV_MemristorMSS_h
+#endif // Xyce_N_DEV_MemristorKnowm_h

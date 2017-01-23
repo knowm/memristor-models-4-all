@@ -14,9 +14,9 @@ See: <http://knowm.org/the-mean-metastable-switch-model-in-xyce/>
 
 ## How to Run Model
 
-    Xyce /path/to/.../mss.cir
+    Xyce /path/to/.../knowm.cir
     gnuplot
-    plot '/path/to/.../mss.cir.prn' using 3:4 with lines title "I-V"
+    plot '/path/to/.../knowm.cir.prn' using 3:4 with lines title "I-V"
 
 
 

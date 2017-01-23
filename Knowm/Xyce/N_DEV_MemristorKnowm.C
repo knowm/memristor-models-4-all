@@ -26,7 +26,7 @@
 
 //----------------------------------------------------------------------------
 //
-// Purpose        : Implementation of the MSS memristor model.
+// Purpose        : Implementation of the Knowm MKnowm memristor model.
 //
 // Creator        : Tim Molter, Knowm Inc.
 //
@@ -35,8 +35,7 @@
 //
 //----------------------------------------------------------------------------
 #include <Xyce_config.h>
-
-#include <N_DEV_MemristorMSS.h>
+#include <N_DEV_Const.h>
 
 #include <N_DEV_DeviceOptions.h>
 #include <N_DEV_ExternData.h>
@@ -45,10 +44,11 @@
 #include <N_LAS_Matrix.h>
 #include <N_UTL_FeatureTest.h>
 #include <Sacado.hpp>
+#include "../include/N_DEV_MemristorKnowm.h"
 
 namespace Xyce {
 namespace Device {
-namespace MemristorMSS {
+namespace MemristorKnowm {
 
 
 
@@ -76,7 +76,7 @@ ScalarT pOn2Off( const ScalarT & V1, const ScalarT & V2, double VOFF, double TC,
 }
 
 template <typename ScalarT>
-ScalarT dXdt( const ScalarT & V1, const ScalarT & V2, const ScalarT & X, double RON, double ROFF, double VON, double VOFF, double TC, double N, double VT)
+ScalarT dXdt( const ScalarT & V1, const ScalarT & V2, const ScalarT & X, double RON, double ROFF, double VON, double VOFF, double TC, double VT)
 {
 
 //	if (DEBUG_DEVICE){
@@ -119,11 +119,11 @@ template <typename ScalarT>
 ScalarT I_V( const ScalarT & V1, const ScalarT & V2, const ScalarT & X, double RON, double ROFF, double PHI, double SchottkyForwardAlpha, double SchottkyForwardBeta, double SchottkyReverseAlpha, double SchottkyReverseBeta ){
 
 	ScalarT Gval=	Geff( X, RON, ROFF );
-	ScalarT MSSCurrentval = (V1-V2)*Gval;
+	ScalarT KnowmCurrentval = (V1-V2)*Gval;
 
 	ScalarT SchottkyCurrentval = SchottkyCurrent(V1, V2, SchottkyForwardAlpha, SchottkyForwardBeta, SchottkyReverseAlpha, SchottkyReverseBeta);
 
-	ScalarT fval = PHI * MSSCurrentval + (1 - PHI) * SchottkyCurrentval;
+	ScalarT fval = PHI * KnowmCurrentval + (1 - PHI) * SchottkyCurrentval;
 
 //	if (DEBUG_DEVICE){
 //		Xyce::dout()  << "  Geff = " <<  Gval << std::endl;
@@ -141,14 +141,14 @@ ScalarT I_V( const ScalarT & V1, const ScalarT & V2, const ScalarT & X, double R
 
 
 //
-// Common Jacobian Stamp for all MemristorMSS devices.
+// Common Jacobian Stamp for all MemristorKnowm devices.
 // Because all memristors have identical Jacobian stamps, this data is
 // declared static and is shared by all memristor instances.
 // 
 std::vector<std::vector<int> > Instance::jacStamp;
 
 //-----------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::Instance::initializeJacobianStamp
+// Function      : Xyce::Device::MemristorKnowm::Instance::initializeJacobianStamp
 // Purpose       : 
 // Special Notes : 
 // Scope         : private
@@ -156,7 +156,7 @@ std::vector<std::vector<int> > Instance::jacStamp;
 // Creation Date : 2/11/2014
 //-----------------------------------------------------------------------------
 //
-// @brief Common Jacobian stamp initializer for all MemristorMSS devices.
+// @brief Common Jacobian stamp initializer for all MemristorKnowm devices.
 //
 // The Jacobian stamp is a sparse-matrix representation of the pattern
 // of non-zero elements that a device will put into the Jacobian matrix.
@@ -196,7 +196,7 @@ void Instance::initializeJacobianStamp()
 }
 
 //-----------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::Traits::loadInstanceParameters
+// Function      : Xyce::Device::MemristorKnowm::Traits::loadInstanceParameters
 // Purpose       : 
 // Special Notes : 
 // Scope         : private
@@ -230,16 +230,19 @@ void Instance::initializeJacobianStamp()
 // calls (and hence in the LaTeX tables in the reference guide produced from
 // this data) are misleading.
 //
-void Traits::loadInstanceParameters(ParametricData<MemristorMSS::Instance> &p)
+void Traits::loadInstanceParameters(ParametricData<MemristorKnowm::Instance> &p)
 {
-  p.addPar("Rinit", 0.0, &MemristorMSS::Instance::rInit_)
+  p.addPar("Rinit", 0.0, &MemristorKnowm::Instance::rInit_)
     .setUnit(U_OHM)
     .setDescription("Initial value for resistance");
+  p.addPar("TEMP", 300.0, &MemristorKnowm::Instance::Temp_)
+    .setUnit(U_DEGK)
+    .setDescription("Device Temperature");
 
 }
 
 //-----------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::Traits::loadModelParameters
+// Function      : Xyce::Device::MemristorKnowm::Traits::loadModelParameters
 // Purpose       : 
 // Special Notes : The addPar calls here were refactored and moved here
 //                 from the model constructor.  Those addPars had been
@@ -253,54 +256,52 @@ void Traits::loadInstanceParameters(ParametricData<MemristorMSS::Instance> &p)
 //
 // @param p     model parameter map
 //
-// @see Xyce::Device::MemristorMSS::Traits::loadInstanceParameters
+// @see Xyce::Device::MemristorKnowm::Traits::loadInstanceParameters
 //
 //
-void Traits::loadModelParameters(ParametricData<MemristorMSS::Model> &p)
+void Traits::loadModelParameters(ParametricData<MemristorKnowm::Model> &p)
 {
   // Create parameter definitions for parameter member variables
 
   // NOTE: The first string arg need to be ALL CAPS!
 
-  p.addPar("ROFF", 16000.0, &MemristorMSS::Model::Roff_)
+  p.addPar("ROFF", 16000.0, &MemristorKnowm::Model::Roff_)
     .setUnit(U_OHM)
     .setDescription("Off resistance.");
-  p.addPar("RON", 100.0, &MemristorMSS::Model::Ron_)
+  p.addPar("RON", 100.0, &MemristorKnowm::Model::Ron_)
     .setUnit(U_OHM)
     .setDescription("On resistance");
-  p.addPar("VOFF", 1.0, &MemristorMSS::Model::Voff_)
+  p.addPar("VOFF", 1.0, &MemristorKnowm::Model::Voff_)
     .setUnit(U_VOLT)
     .setDescription("Threshold voltage to turn device off");
-  p.addPar("VON", 1.0, &MemristorMSS::Model::Von_)
+  p.addPar("VON", 1.0, &MemristorKnowm::Model::Von_)
     .setUnit(U_VOLT)
     .setDescription("Threshold voltage to turn device on");
-  p.addPar("TC", 10.0e-9, &MemristorMSS::Model::Tc_)
+  p.addPar("TAU", 10.0e-9, &MemristorKnowm::Model::Tau_)
     .setUnit(U_SECOND)
     .setDescription("Time constant");
-  p.addPar("N", 10.0e-15, &MemristorMSS::Model::N_)
-    .setUnit(U_NONE)
-    .setDescription("Number of switches");
 
-  p.addPar("PHI", 1.0, &MemristorMSS::Model::Phi_)
+  p.addPar("PHI", 1.0, &MemristorKnowm::Model::Phi_)
     .setUnit(U_NONE)
     .setDescription("Schottky Forward Alpha_");
-  p.addPar("SFA", 0.0, &MemristorMSS::Model::SchottkyForwardAlpha_)
+  p.addPar("SFA", 0.0, &MemristorKnowm::Model::SchottkyForwardAlpha_)
     .setUnit(U_NONE)
     .setDescription("Schottky Forward Alpha_");
-  p.addPar("SFB", 0.0, &MemristorMSS::Model::SchottkyForwardBeta_)
+  p.addPar("SFB", 0.0, &MemristorKnowm::Model::SchottkyForwardBeta_)
     .setUnit(U_NONE)
     .setDescription("Schottky Forward Beta");
-  p.addPar("SRA", 0.0, &MemristorMSS::Model::SchottkyReverseAlpha_)
+  p.addPar("SRA", 0.0, &MemristorKnowm::Model::SchottkyReverseAlpha_)
     .setUnit(U_NONE)
     .setDescription("Schottky Reverse Alpha");
-  p.addPar("SRB", 0.0, &MemristorMSS::Model::SchottkyReverseBeta_)
+  p.addPar("SRB", 0.0, &MemristorKnowm::Model::SchottkyReverseBeta_)
     .setUnit(U_NONE)
     .setDescription("Schottky Reverse Beta");
+
 
 }
 
 //-----------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::Instance::Instance
+// Function      : Xyce::Device::MemristorKnowm::Instance::Instance
 // Purpose       : Instance constructor
 // Special Notes : 
 // Scope         : public
@@ -318,6 +319,7 @@ Instance::Instance(
   : DeviceInstance(instance_block, configuration.getInstanceParameters(), factory_block),
     model_(model),
 	  rInit_(0.0),
+		Temp_(300.0),
     G(0.0),
     i0(0.0),
     li_Pos(-1),
@@ -378,7 +380,7 @@ Instance::Instance(
 }
 
 //-----------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::Instance::processParams
+// Function      : Xyce::Device::MemristorKnowm::Instance::processParams
 // Purpose       : 
 // Special Notes : 
 // Scope         : public
@@ -406,11 +408,16 @@ bool Instance::processParams()
 //        Xyce::dout()  << " rInit_  = " << rInit_ << std::endl;
 //	}
 
+  if (!given("TEMP")){
+  	Temp_ = getDeviceOptions().temp.getImmutableValue<double>();
+  }
+
+  updateTemperature(Temp_);
   return true;
 }
 
 //-----------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::Instance::registerLIDs
+// Function      : Xyce::Device::MemristorKnowm::Instance::registerLIDs
 // Purpose       : 
 // Special Notes : 
 // Scope         : public
@@ -444,7 +451,7 @@ void Instance::registerLIDs(
 }
 
 //-----------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::Instance::registerStateLIDs
+// Function      : Xyce::Device::MemristorKnowm::Instance::registerStateLIDs
 // Purpose       : 
 // Special Notes : 
 // Scope         : public
@@ -474,7 +481,7 @@ void Instance::registerStateLIDs(const std::vector<int> & staLIDVecRef)
 }
 
 //-----------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::Instance::registerStoreLIDs
+// Function      : Xyce::Device::MemristorKnowm::Instance::registerStoreLIDs
 // Purpose       : 
 // Special Notes : 
 // Scope         : public
@@ -498,7 +505,7 @@ void Instance::registerStoreLIDs(const std::vector<int> & stoLIDVecRef)
 }
 
 //-----------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::Instance::registerBranchDataLIDs
+// Function      : Xyce::Device::MemristorKnowm::Instance::registerBranchDataLIDs
 // Purpose       : 
 // Special Notes : 
 // Scope         : public
@@ -554,7 +561,7 @@ void Instance::loadNodeSymbols(Util::SymbolTable &symbol_table) const
 }
 
 //-----------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::Instance::registerJacLIDs
+// Function      : Xyce::Device::MemristorKnowm::Instance::registerJacLIDs
 // Purpose       : 
 // Special Notes : 
 // Scope         : public
@@ -566,7 +573,7 @@ void Instance::loadNodeSymbols(Util::SymbolTable &symbol_table) const
 //
 // @param jacLIDVec Jacobian local Ids
 //
-// @see Xyce::Device::MemristorMSS::Instance::initializeJacobianStamp
+// @see Xyce::Device::MemristorKnowm::Instance::initializeJacobianStamp
 //
 // Having established local IDs for the solution variables, Topology must
 // also assign local IDs for the elements of the Jacobian matrix.
@@ -600,7 +607,7 @@ void Instance::registerJacLIDs(const std::vector< std::vector<int> > & jacLIDVec
 }
 
 //-----------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::Instance::setupPointers
+// Function      : Xyce::Device::MemristorKnowm::Instance::setupPointers
 // Purpose       : 
 // Special Notes : 
 // Scope         : public
@@ -610,7 +617,7 @@ void Instance::registerJacLIDs(const std::vector< std::vector<int> > & jacLIDVec
 //
 // Setup direct access pointer to solution matrix and vectors.
 //
-// @see Xyce::Device::MemristorMSS::Instance::registerJacLIDs
+// @see Xyce::Device::MemristorKnowm::Instance::registerJacLIDs
 //
 // As an alternative to the row offsets defined in registerJacLIDs, it 
 // is also possible to obtain direct pointers of the Jacobian elements.
@@ -682,7 +689,7 @@ bool Instance::updateIntermediateVars()
 }
 
 //-----------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::Instance::updateTemperature
+// Function      : Xyce::Device::MemristorKnowm::Instance::updateTemperature
 // Purpose       :
 // Special Notes :
 // Scope         : public
@@ -699,7 +706,7 @@ bool Instance::updateIntermediateVars()
 // temperature.  When temperature is changed, any device that has parameters
 // that depend on temperature must be updated.  That updating happens here.
 //
-// The MemristorMSS device supports temperature-dependent resistance through its
+// The MemristorKnowm device supports temperature-dependent resistance through its
 // TC1 (linear dependence) and TC2 (quadratic dependence) parameters.
 // If these parameters are specified, the resistance must be updated.
 //
@@ -717,7 +724,7 @@ bool Instance::updateTemperature(const double & temp_tmp)
 }
 
 //-----------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::Model::processParams
+// Function      : Xyce::Device::MemristorKnowm::Model::processParams
 // Purpose       :
 // Special Notes :
 // Scope         : public
@@ -737,7 +744,7 @@ bool Model::processParams()
 }
 
 //----------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::Model::processInstanceParams
+// Function      : Xyce::Device::MemristorKnowm::Model::processInstanceParams
 // Purpose       : 
 // Special Notes : 
 // Scope         : public
@@ -765,7 +772,7 @@ bool Model::processInstanceParams()
 }
 
 //-----------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::Model
+// Function      : Xyce::Device::MemristorKnowm::Model
 // Purpose       : model block constructor
 // Special Notes :
 // Scope         : public
@@ -791,8 +798,7 @@ Model::Model(
 	Ron_(0.0),
 	Von_(0.0),
 	Voff_(0.0),
-	Tc_(0.0),
-  N_(0.0)
+	Tau_(0.0)
 {
   // Set params to constant default values.
   setDefaultParams();
@@ -814,7 +820,7 @@ Model::Model(
 }
 
 //-----------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::Model::~Model
+// Function      : Xyce::Device::MemristorKnowm::Model::~Model
 // Purpose       : destructor
 // Special Notes :
 // Scope         : public
@@ -838,7 +844,7 @@ Model::~Model()
 }
 
 //-----------------------------------------------------------------------------
-// Function      : N_DEV_MemristorMSSModel::printOutInstances
+// Function      : N_DEV_MemristorKnowmModel::printOutInstances
 // Purpose       : debugging tool.
 // Special Notes :
 // Scope         : public
@@ -860,7 +866,7 @@ Model::~Model()
 std::ostream &Model::printOutInstances(std::ostream &os) const
 {
   os << std::endl;
-  os << "Number of MemristorMSS Instances: " << instanceContainer.size() << std::endl;
+  os << "Number of MemristorKnowm Instances: " << instanceContainer.size() << std::endl;
   os << "    name     model name  Parameters" << std::endl;
 
   int i = 0;
@@ -908,7 +914,7 @@ double initialX( double rOn, double rOff, double rInit){
 }
 
 //-----------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::Master::updateState
+// Function      : Xyce::Device::MemristorKnowm::Master::updateState
 // Purpose       : 
 // Special Notes :
 // Scope         : public
@@ -924,7 +930,7 @@ double initialX( double rOn, double rOff, double rInit){
 //
 // @return true on success
 //
-// @see Xyce::Device::MemristorMSS::Instance::updatePrimaryState
+// @see Xyce::Device::MemristorKnowm::Instance::updatePrimaryState
 // @author Eric Keiter, SNL
 // @date   11/26/08
 bool Master::updateState(double * solVec, double * staVec, double * stoVec)
@@ -971,9 +977,13 @@ bool Master::updateState(double * solVec, double * staVec, double * stoVec)
 				Sacado::Fad::SFad<double,3> varX( 3, 2, x );
 				Sacado::Fad::SFad<double,3> resultFad;
 
-				// TODO make thermal voltage dynamic
 				double vT = 0.026;
-				resultFad = dXdt( varV1, varV2, varX, ri.model_.Ron_, ri.model_.Roff_, ri.model_.Von_, ri.model_.Voff_, ri.model_.Tc_, ri.model_.N_, vT );
+				vT = ri.Temp_ * CONSTKoverQ;
+				if (DEBUG_DEVICE){
+					Xyce::dout()  << "  vT = " <<  vT << std::endl;
+				}
+
+				resultFad = dXdt( varV1, varV2, varX, ri.model_.Ron_, ri.model_.Roff_, ri.model_.Von_, ri.model_.Voff_, ri.model_.Tau_, vT );
 
 				ri.xVarFContribution = resultFad.val();
 				if( getSolverState().dcopFlag )
@@ -1135,7 +1145,7 @@ bool Master::loadDAEMatrices(Linear::Matrix & dFdx, Linear::Matrix & dQdx)
 }
 
 //-----------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::Traits::factory
+// Function      : Xyce::Device::MemristorKnowm::Traits::factory
 // Purpose       : 
 // Special Notes :
 // Scope         : public
@@ -1143,7 +1153,7 @@ bool Master::loadDAEMatrices(Linear::Matrix & dFdx, Linear::Matrix & dQdx)
 // Creation Date : 10/23/2014
 //-----------------------------------------------------------------------------
 //
-// Create a new instance of the MemristorMSS device.
+// Create a new instance of the MemristorKnowm device.
 //
 // @param configuration
 // @param factory_block
@@ -1154,7 +1164,7 @@ Device * Traits::factory(const Configuration &configuration, const FactoryBlock 
 }
 
 //-----------------------------------------------------------------------------
-// Function      : Xyce::Device::MemristorMSS::registerDevice
+// Function      : Xyce::Device::MemristorKnowm::registerDevice
 // Purpose       : 
 // Special Notes :
 // Scope         : public
@@ -1174,19 +1184,19 @@ void
 registerDevice()
 {
   Config<Traits>::addConfiguration()
-    .registerDevice("MSS", 1)
-    .registerModelType("MSS", 1);
+    .registerDevice("Knowm", 1)
+    .registerModelType("Knowm", 1);
 }
 
 //-----------------------------------------------------------------------------
-// Function      : MemristorMSSSensitivity::operator
+// Function      : MemristorKnowmSensitivity::operator
 // Purpose       : produces df/dp and dq/dp, where p=R.  
 // Special Notes : 
 // Scope         : public
 // Creator       : Richard Schiek, Electrical Models & Simulations
 // Creation Date : 10/23/2014
 //-----------------------------------------------------------------------------
-void MemristorMSSSensitivity::operator()(
+void MemristorKnowmSensitivity::operator()(
     const ParameterBase &entity,
     const std::string & name,
     std::vector<double> & dfdp, 
@@ -1215,6 +1225,6 @@ void MemristorMSSSensitivity::operator()(
   Findices[1] = in->li_Neg;
 }
 
-} // namespace MemristorMSS
+} // namespace MemristorKnowm
 } // namespace Device
 } // namespace Xyce
