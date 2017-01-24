@@ -26,7 +26,7 @@
 
 //----------------------------------------------------------------------------
 //
-// Purpose        : Implementation of the Knowm MKnowm memristor model.
+// Purpose        : Implementation of the Knowm M-MSS memristor model.
 //
 // Creator        : Tim Molter, Knowm Inc.
 //
@@ -57,26 +57,26 @@ namespace MemristorKnowm {
 
 
 template <typename ScalarT>
-ScalarT p0ff2on( const ScalarT & V1, const ScalarT & V2, double VON, double TC, double VT )
+ScalarT p0ff2on( const ScalarT & V1, const ScalarT & V2, double VON, double TAU, double VT )
 {
 	ScalarT exponent = -1 * ((V1-V2) - VON) / VT;
-  double alpha = 1 / TC;
+  double alpha = 1 / TAU;
   ScalarT fval = alpha / (1.0 + exp(exponent));
   return fval;
 }
 
 template <typename ScalarT>
-ScalarT pOn2Off( const ScalarT & V1, const ScalarT & V2, double VOFF, double TC, double VT )
+ScalarT pOn2Off( const ScalarT & V1, const ScalarT & V2, double VOFF, double TAU, double VT )
 {
 
 	ScalarT exponent = -1 * ((V1-V2) + VOFF) / VT;
-  double alpha = 1 / TC;
+  double alpha = 1 / TAU;
   ScalarT fval = alpha * (1.0 - 1.0 / (1.0 + exp(exponent)));
   return fval;
 }
 
 template <typename ScalarT>
-ScalarT dXdt( const ScalarT & V1, const ScalarT & V2, const ScalarT & X, double RON, double ROFF, double VON, double VOFF, double TC, double VT)
+ScalarT dXdt( const ScalarT & V1, const ScalarT & V2, const ScalarT & X, double RON, double ROFF, double VON, double VOFF, double TAU, double VT)
 {
 
 //	if (DEBUG_DEVICE){
@@ -86,8 +86,8 @@ ScalarT dXdt( const ScalarT & V1, const ScalarT & V2, const ScalarT & X, double 
 //	}
 
   // Probabilities
-	ScalarT p0ff2onVal = p0ff2on(V1, V2, VON, TC, VT);
-	ScalarT pOn2OffVal = pOn2Off(V1, V2, VOFF, TC, VT);
+	ScalarT p0ff2onVal = p0ff2on(V1, V2, VON, TAU, VT);
+	ScalarT pOn2OffVal = pOn2Off(V1, V2, VOFF, TAU, VT);
 
   // Number of switches making a transition
 	ScalarT n0ff2on = (1 - X) * p0ff2onVal;
@@ -706,9 +706,6 @@ bool Instance::updateIntermediateVars()
 // temperature.  When temperature is changed, any device that has parameters
 // that depend on temperature must be updated.  That updating happens here.
 //
-// The MemristorKnowm device supports temperature-dependent resistance through its
-// TC1 (linear dependence) and TC2 (quadratic dependence) parameters.
-// If these parameters are specified, the resistance must be updated.
 //
 // @return true on success
 //
@@ -979,9 +976,9 @@ bool Master::updateState(double * solVec, double * staVec, double * stoVec)
 
 				double vT = 0.026;
 				vT = ri.Temp_ * CONSTKoverQ;
-				if (DEBUG_DEVICE){
-					Xyce::dout()  << "  vT = " <<  vT << std::endl;
-				}
+//				if (DEBUG_DEVICE){
+//					Xyce::dout()  << "  vT = " <<  vT << std::endl;
+//				}
 
 				resultFad = dXdt( varV1, varV2, varX, ri.model_.Ron_, ri.model_.Roff_, ri.model_.Von_, ri.model_.Voff_, ri.model_.Tau_, vT );
 
