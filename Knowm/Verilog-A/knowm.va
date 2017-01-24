@@ -1,22 +1,20 @@
 `include "disciplines.vams"
 `include "constants.vams"
 
-`define X_BORDER_BUMP 10e-18
-
 `define attr(txt) (*txt*)
 
-module mssmemristor (p,n);
+module knowmmemristor (p,n);
 
     inout p,n;
     electrical p,n;
 
-    parameter real G_OFF=1E-6 from (0:inf) `attr(info="G_OFF" type="instance");
-    parameter real G_ON=10E-6 from (0:inf) `attr(info="G_ON" type="instance");
-    parameter real V_ON=.2 from (0:inf) `attr(info="V_ON" type="instance");
+    parameter real R_OFF=1E-6 from (0:inf) `attr(info="R_OFF" type="instance");
+    parameter real R_ON=10E-6 from (0:inf) `attr(info="R_ON" type="instance");
     parameter real V_OFF=.2 from (0:inf) `attr(info="V_OFF" type="instance");
-    parameter real TC=0.0001 from (0:inf) `attr(info="TC" type="instance");
-    parameter real N=10e5 from [0:inf) `attr(info="N" type="instance");
-    parameter real N_ON_OFF_RATIO=0 from [0:1] `attr(info="N_ON_OFF_RATIO" type="instance");
+    parameter real V_ON=.2 from (0:inf) `attr(info="V_ON" type="instance");
+    parameter real TAU=0.0001 from (0:inf) `attr(info="TAU" type="instance");
+    parameter real XO=0 from [0:1] `attr(info="XO" type="instance");
+    // TODO: use R_INIT instead of XO
 
     // local variables that should persist over time steps
     real g_off;
@@ -94,23 +92,6 @@ module mssmemristor (p,n);
           Pb = 0.0;
         end
         $strobe ("Pb = ", Pb);
-
-
-
-        num_ON_to_OFF= $dist_normal(1,0,1n,"global");
-
-
-
-        if(Pa > .6 && global_on < .5) begin
-            Nb = 0;
-            global_on = 1;
-        end
-        else if (Pb > .6 && global_on > .5) begin
-            Nb = N;
-            global_on = 0;
-        end
-
-
 
 
 

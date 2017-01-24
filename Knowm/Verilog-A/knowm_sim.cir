@@ -3,7 +3,7 @@
 V1 1 0 SIN(0V .25V 100Hz)
 
 * Memristors
-YMSSMEMRISTOR M1 1 0 
+Yknowmmemristor M1 1 0 
 
 * Analysis Command
 .TRAN .01ms 10ms
