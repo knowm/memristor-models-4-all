@@ -50,11 +50,6 @@ namespace Device {
 namespace MemristorJoglekar {
 
 
-
-
-
-
-
 template <typename ScalarT>
 ScalarT JogelkarWindowFunction( const ScalarT & X, double P )
 {
@@ -102,15 +97,6 @@ ScalarT I_V( const ScalarT & V1, const ScalarT & V2, const ScalarT & X, double R
 //		Xyce::dout()  << "  ROFF = " <<  ROFF << std::endl;
 //	}
 }
-
-
-
-
-
-
-
-
-
 
 
 //
@@ -1105,8 +1091,8 @@ void
 registerDevice()
 {
   Config<Traits>::addConfiguration()
-    .registerDevice("joglekar", 1)
-    .registerModelType("joglekar", 1);
+    .registerDevice("memristor", 4)
+    .registerModelType("memristor", 4);
 }
 
 //-----------------------------------------------------------------------------

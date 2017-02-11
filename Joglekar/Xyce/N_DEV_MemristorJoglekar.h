@@ -42,6 +42,7 @@
 #include <N_DEV_DeviceInstance.h>
 #include <N_DEV_DeviceModel.h>
 #include <N_DEV_DeviceMaster.h>
+#include <N_DEV_MemristorTEAM.h>
 
 namespace Xyce {
 namespace Device {
@@ -74,10 +75,10 @@ class MemristorJoglekarSensitivity : public baseSensitivity
 
 static MemristorJoglekarSensitivity memrSens;
 
-struct Traits : public DeviceTraits<Model, Instance>
+struct Traits : public DeviceTraits<Model, Instance, MemristorTEAM::Traits>
 {
   static const char *name() {return "MemristorJoglekar";}
-  static const char *deviceTypeName() {return "YJOGLEKAR level 1";}
+  static const char *deviceTypeName() {return "YMEMRISTOR level 4";}
   static int numNodes() {return 2;}
   static bool modelRequired() {return true;}
   static bool isLinearDevice() {return false;}

@@ -37,6 +37,8 @@
 #include <Xyce_config.h>
 #include <N_DEV_Const.h>
 
+#include <N_DEV_MemristorKnowm.h>
+
 #include <N_DEV_DeviceOptions.h>
 #include <N_DEV_ExternData.h>
 #include <N_DEV_SolverState.h>
@@ -297,7 +299,6 @@ void Traits::loadModelParameters(ParametricData<MemristorKnowm::Model> &p)
     .setUnit(U_NONE)
     .setDescription("Schottky Reverse Beta");
 
-
 }
 
 //-----------------------------------------------------------------------------
@@ -319,7 +320,7 @@ Instance::Instance(
   : DeviceInstance(instance_block, configuration.getInstanceParameters(), factory_block),
     model_(model),
 	  rInit_(0.0),
-		Temp_(300.0),
+    Temp_(300.0),
     G(0.0),
     i0(0.0),
     li_Pos(-1),
@@ -407,9 +408,8 @@ bool Instance::processParams()
 //		Xyce::dout()  << "----------Instance::processParams"  << std::endl;
 //        Xyce::dout()  << " rInit_  = " << rInit_ << std::endl;
 //	}
-
   if (!given("TEMP")){
-  	Temp_ = getDeviceOptions().temp.getImmutableValue<double>();
+    Temp_ = getDeviceOptions().temp.getImmutableValue<double>();
   }
 
   updateTemperature(Temp_);
@@ -706,7 +706,6 @@ bool Instance::updateIntermediateVars()
 // temperature.  When temperature is changed, any device that has parameters
 // that depend on temperature must be updated.  That updating happens here.
 //
-//
 // @return true on success
 //
 // @author Tom Russo, Component Information and Models
@@ -975,11 +974,10 @@ bool Master::updateState(double * solVec, double * staVec, double * stoVec)
 				Sacado::Fad::SFad<double,3> resultFad;
 
 				double vT = 0.026;
-				vT = ri.Temp_ * CONSTKoverQ;
-//				if (DEBUG_DEVICE){
-//					Xyce::dout()  << "  vT = " <<  vT << std::endl;
-//				}
-
+        vT = ri.Temp_ * CONSTKoverQ;
+//        if (DEBUG_DEVICE){
+//          Xyce::dout() << "  vT = " << vT << std::endl;
+//        }
 				resultFad = dXdt( varV1, varV2, varX, ri.model_.Ron_, ri.model_.Roff_, ri.model_.Von_, ri.model_.Voff_, ri.model_.Tau_, vT );
 
 				ri.xVarFContribution = resultFad.val();
@@ -1043,14 +1041,14 @@ bool Master::loadDAEVectors (double * solVec, double * fVec, double *qVec,  doub
   for (InstanceVector::const_iterator it = getInstanceBegin(); it != getInstanceEnd(); ++it)
   {
     Instance & ri = *(*it);
-    fVec[ri.li_Pos] += -ri.i0;
-    fVec[ri.li_Neg] += ri.i0;
+    fVec[ri.li_Pos] += ri.i0;
+    fVec[ri.li_Neg] += -ri.i0;
     fVec[ri.li_x]   += ri.xVarFContribution;
     qVec[ri.li_x]   -= solVec[ri.li_x];
     if( getSolverState().dcopFlag )
 		{
     	double x = initialX(ri.model_.Ron_, ri.model_.Roff_, ri.rInit_);
-      qVec[ri.li_x] -= x;
+      qVec[ri.li_x] += x;
 //			if (DEBUG_DEVICE){
 //				Xyce::dout()  << "DCOP x = "  << x  << std::endl;
 //			}
@@ -1181,8 +1179,8 @@ void
 registerDevice()
 {
   Config<Traits>::addConfiguration()
-    .registerDevice("Knowm", 1)
-    .registerModelType("Knowm", 1);
+    .registerDevice("memristor", 5)
+    .registerModelType("memristor", 5);
 }
 
 //-----------------------------------------------------------------------------
