@@ -886,7 +886,7 @@ bool Master::updateState(double * solVec, double * staVec, double * stoVec)
           Sacado::Fad::SFad<double,3> resultFad;
           resultFad = I_V( varV1, varV2, varX, ri.model_.Ron_, ri.model_.Roff_);
 
-          ri.i0 = -1*resultFad.val(); // current
+          ri.i0 = resultFad.val(); // current
           ri.G  = resultFad.dx(0); // di/dv = conductance
           ri.dIdx = resultFad.dx(2); // di/dx
 
@@ -1019,27 +1019,22 @@ bool Master::loadDAEMatrices(Linear::Matrix & dFdx, Linear::Matrix & dQdx)
     Instance & ri = *(*it);
 
 #ifndef Xyce_NONPOINTER_MATRIX_LOAD
-
     *(ri.f_PosEquPosNodePtr) += ri.G;
     *(ri.f_PosEquNegNodePtr) -= ri.G;
+    *(ri.f_PosEquXNodePtr)   += ri.dIdx;
     *(ri.f_NegEquPosNodePtr) -= ri.G;
     *(ri.f_NegEquNegNodePtr) += ri.G;
-
-    *(ri.f_PosEquXNodePtr)   += ri.dIdx;
     *(ri.f_NegEquXNodePtr )  += ri.dIdx;
-
     *(ri.f_XEquPosNodePtr )  += ri.dxFEqdVpos;
     *(ri.f_XEquNegNodePtr )  += ri.dxFEqdVneg;
     *(ri.f_XEquXNodePtr )    += ri.dxFEqdx;
-
-    *(ri.q_XEquXNodePtr )    = -1.0;
-
+    *(ri.q_XEquXNodePtr )    = -1.0; 
 #else
     dFdx[ri.li_Pos][ri.APosEquPosNodeOffset] += ri.G;
     dFdx[ri.li_Pos][ri.APosEquNegNodeOffset] -= ri.G;
+    dFdx[ri.li_Pos][ri.APosEquXNodeOffset]   += ri.dIdx;
     dFdx[ri.li_Neg][ri.ANegEquPosNodeOffset] -= ri.G;
     dFdx[ri.li_Neg][ri.ANegEquNegNodeOffset] += ri.G;
-    dFdx[ri.li_Pos][ri.APosEquXNodeOffset]   += ri.dIdx;
     dFdx[ri.li_Neg][ri.ANegEquXNodeOffset]   += ri.dIdx;
     dFdx[ri.li_x][ri.XEquVPosOffset]         += ri.dxFEqdVpos;
     dFdx[ri.li_x][ri.XEquVNegOffset]         += ri.dxFEqdVneg;
