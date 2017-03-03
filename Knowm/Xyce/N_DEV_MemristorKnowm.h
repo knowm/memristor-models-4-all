@@ -26,7 +26,7 @@
 
 //-----------------------------------------------------------------------------
 //
-// Purpose        : Implementation of the Knowm MKnowm memristor model.
+// Purpose        : Implementation of the MSS memristor model.
 //                  
 // Creator        : Tim Molter, Knowm Inc.
 //
@@ -43,6 +43,7 @@
 #include <N_DEV_DeviceModel.h>
 #include <N_DEV_DeviceMaster.h>
 #include <N_UTL_RandomNumbers.h>
+#include <N_DEV_MemristorTEAM.h>
 
 namespace Xyce {
 namespace Device {
@@ -75,10 +76,10 @@ class MemristorKnowmSensitivity : public baseSensitivity
 
 static MemristorKnowmSensitivity memrSens;
 
-struct Traits : public DeviceTraits<Model, Instance>
+struct Traits : public DeviceTraits<Model, Instance, MemristorTEAM::Traits>
 {
   static const char *name() {return "MemristorKnowm";}
-  static const char *deviceTypeName() {return "YKnowm level 1";}
+  static const char *deviceTypeName() {return "YMEMRISTOR level 5";}
   static int numNodes() {return 2;}
   static bool modelRequired() {return true;}
   static bool isLinearDevice() {return false;}
@@ -222,7 +223,7 @@ private:
 
   // User-specified parameters:
   double      rInit_;
-  double      Temp_;  // instance temperature (TEMP)
+  double      Temp_; // instance temperature (TEMP)
 
   // Derived parameters:
   double      G;                      //< Conductance(1.0/ohms)
