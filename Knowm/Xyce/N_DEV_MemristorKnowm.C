@@ -46,7 +46,6 @@
 #include <N_LAS_Matrix.h>
 #include <N_UTL_FeatureTest.h>
 #include <Sacado.hpp>
-#include "../include/N_DEV_MemristorKnowm.h"
 
 namespace Xyce {
 namespace Device {
@@ -61,7 +60,7 @@ namespace MemristorKnowm {
 template <typename ScalarT>
 ScalarT p0ff2on( const ScalarT & V1, const ScalarT & V2, double VON, double TAU, double VT )
 {
-	ScalarT exponent = -1 * ((V1-V2) - VON) / VT;
+  ScalarT exponent = -1 * ((V1-V2) - VON) / VT;
   double alpha = 1 / TAU;
   ScalarT fval = alpha / (1.0 + exp(exponent));
   return fval;
@@ -71,7 +70,7 @@ template <typename ScalarT>
 ScalarT pOn2Off( const ScalarT & V1, const ScalarT & V2, double VOFF, double TAU, double VT )
 {
 
-	ScalarT exponent = -1 * ((V1-V2) + VOFF) / VT;
+  ScalarT exponent = -1 * ((V1-V2) + VOFF) / VT;
   double alpha = 1 / TAU;
   ScalarT fval = alpha * (1.0 - 1.0 / (1.0 + exp(exponent)));
   return fval;
@@ -81,23 +80,23 @@ template <typename ScalarT>
 ScalarT dXdt( const ScalarT & V1, const ScalarT & V2, const ScalarT & X, double RON, double ROFF, double VON, double VOFF, double TAU, double VT)
 {
 
-//	if (DEBUG_DEVICE){
-//		Xyce::dout()  << "  V1 = " <<  V1 << std::endl;
-//		Xyce::dout()  << "  V2 = " <<  V2 << std::endl;
-//		Xyce::dout()  << "  X = " <<  X << std::endl;
-//	}
+//  if (DEBUG_DEVICE){
+//    Xyce::dout()  << "  V1 = " <<  V1 << std::endl;
+//    Xyce::dout()  << "  V2 = " <<  V2 << std::endl;
+//    Xyce::dout()  << "  X = " <<  X << std::endl;
+//  }
 
   // Probabilities
-	ScalarT p0ff2onVal = p0ff2on(V1, V2, VON, TAU, VT);
-	ScalarT pOn2OffVal = pOn2Off(V1, V2, VOFF, TAU, VT);
+  ScalarT p0ff2onVal = p0ff2on(V1, V2, VON, TAU, VT);
+  ScalarT pOn2OffVal = pOn2Off(V1, V2, VOFF, TAU, VT);
 
   // Number of switches making a transition
-	ScalarT n0ff2on = (1 - X) * p0ff2onVal;
-	ScalarT nOn2Off = X  * pOn2OffVal;
+  ScalarT n0ff2on = (1 - X) * p0ff2onVal;
+  ScalarT nOn2Off = X  * pOn2OffVal;
 
-	ScalarT fval = n0ff2on - nOn2Off;
+  ScalarT fval = n0ff2on - nOn2Off;
 
-	return fval;
+  return fval;
 }
 
 
@@ -108,33 +107,33 @@ ScalarT dXdt( const ScalarT & V1, const ScalarT & V2, const ScalarT & X, double 
 template <typename ScalarT>
 ScalarT SchottkyCurrent( const ScalarT & V1, const ScalarT & V2, double SchottkyForwardAlpha, double SchottkyForwardBeta, double SchottkyReverseAlpha, double SchottkyReverseBeta )
 {
-	return SchottkyReverseAlpha * (-1 * exp(-1 * SchottkyReverseBeta * (V1-V2))) + SchottkyForwardAlpha * (exp(SchottkyForwardBeta * (V1-V2)));
+  return SchottkyReverseAlpha * (-1 * exp(-1 * SchottkyReverseBeta * (V1-V2))) + SchottkyForwardAlpha * (exp(SchottkyForwardBeta * (V1-V2)));
 }
 
 template <typename ScalarT>
 ScalarT Geff( const ScalarT & X, double RON, double ROFF )
 {
-	return  X / RON + (1 - X) / ROFF;
+  return  X / RON + (1 - X) / ROFF;
 }
 
 template <typename ScalarT>
 ScalarT I_V( const ScalarT & V1, const ScalarT & V2, const ScalarT & X, double RON, double ROFF, double PHI, double SchottkyForwardAlpha, double SchottkyForwardBeta, double SchottkyReverseAlpha, double SchottkyReverseBeta ){
 
-	ScalarT Gval=	Geff( X, RON, ROFF );
-	ScalarT KnowmCurrentval = (V1-V2)*Gval;
+  ScalarT Gval= Geff( X, RON, ROFF );
+  ScalarT KnowmCurrentval = (V1-V2)*Gval;
 
-	ScalarT SchottkyCurrentval = SchottkyCurrent(V1, V2, SchottkyForwardAlpha, SchottkyForwardBeta, SchottkyReverseAlpha, SchottkyReverseBeta);
+  ScalarT SchottkyCurrentval = SchottkyCurrent(V1, V2, SchottkyForwardAlpha, SchottkyForwardBeta, SchottkyReverseAlpha, SchottkyReverseBeta);
 
-	ScalarT fval = PHI * KnowmCurrentval + (1 - PHI) * SchottkyCurrentval;
+  ScalarT fval = PHI * KnowmCurrentval + (1 - PHI) * SchottkyCurrentval;
 
-//	if (DEBUG_DEVICE){
-//		Xyce::dout()  << "  Geff = " <<  Gval << std::endl;
-//		Xyce::dout()  << "  RON = " <<  RON << std::endl;
-//		Xyce::dout()  << "  ROFF = " <<  ROFF << std::endl;
-//		Xyce::dout()  << "  fval = " <<  fval << std::endl;
-//	}
+//  if (DEBUG_DEVICE){
+//    Xyce::dout()  << "  Geff = " <<  Gval << std::endl;
+//    Xyce::dout()  << "  RON = " <<  RON << std::endl;
+//    Xyce::dout()  << "  ROFF = " <<  ROFF << std::endl;
+//    Xyce::dout()  << "  fval = " <<  fval << std::endl;
+//  }
 
-	return fval;
+  return fval;
 }
 
 
@@ -234,7 +233,7 @@ void Instance::initializeJacobianStamp()
 //
 void Traits::loadInstanceParameters(ParametricData<MemristorKnowm::Instance> &p)
 {
-  p.addPar("Rinit", 0.0, &MemristorKnowm::Instance::rInit_)
+  p.addPar("R_init", 0.0, &MemristorKnowm::Instance::R_init_)
     .setUnit(U_OHM)
     .setDescription("Initial value for resistance");
   p.addPar("TEMP", 300.0, &MemristorKnowm::Instance::Temp_)
@@ -319,7 +318,7 @@ Instance::Instance(
   const FactoryBlock &  factory_block)
   : DeviceInstance(instance_block, configuration.getInstanceParameters(), factory_block),
     model_(model),
-	  rInit_(0.0),
+    R_init_(0.0),
     Temp_(300.0),
     G(0.0),
     i0(0.0),
@@ -400,14 +399,14 @@ bool Instance::processParams()
 {
 
   // initialize X state (width between 0 and 1 and scaled to D)
-  if (!given("Rinit")){
-  	rInit_ = model_.Roff_;
+  if (!given("R_init")){
+    R_init_ = model_.Roff_;
   }
 
-//	if (DEBUG_DEVICE){
-//		Xyce::dout()  << "----------Instance::processParams"  << std::endl;
-//        Xyce::dout()  << " rInit_  = " << rInit_ << std::endl;
-//	}
+//  if (DEBUG_DEVICE){
+//    Xyce::dout()  << "----------Instance::processParams"  << std::endl;
+//        Xyce::dout()  << " R_init_  = " << R_init_ << std::endl;
+//  }
   if (!given("TEMP")){
     Temp_ = getDeviceOptions().temp.getImmutableValue<double>();
   }
@@ -712,10 +711,10 @@ bool Instance::updateIntermediateVars()
 // @date   02/27/01
 bool Instance::updateTemperature(const double & temp_tmp)
 {
-//	TEMP;
-	if (DEBUG_DEVICE){
-		Xyce::dout()  << "  temp_tmp = " <<  temp_tmp << std::endl;
-	}
+//  TEMP;
+  if (DEBUG_DEVICE){
+    Xyce::dout()  << "  temp_tmp = " <<  temp_tmp << std::endl;
+  }
   return true;
 }
 
@@ -790,11 +789,11 @@ Model::Model(
   const ModelBlock &    model_block,
   const FactoryBlock &  factory_block)
   : DeviceModel(model_block, configuration.getModelParameters(), factory_block),
-	Roff_(0.0),
-	Ron_(0.0),
-	Von_(0.0),
-	Voff_(0.0),
-	Tau_(0.0)
+  Roff_(0.0),
+  Ron_(0.0),
+  Von_(0.0),
+  Voff_(0.0),
+  Tau_(0.0)
 {
   // Set params to constant default values.
   setDefaultParams();
@@ -901,10 +900,10 @@ void Model::forEachInstance(DeviceInstanceOp &op) const /* override */
 
 double initialX( double rOn, double rOff, double rInit){
 
-	double x = (rOn * (rInit - rOff )) / (rInit * (rOn - rOff));
-	if(x== -0){
-		x = 0.0;
-	}
+  double x = (rOn * (rInit - rOff )) / (rInit * (rOn - rOff));
+  if(x== -0){
+    x = 0.0;
+  }
 
   return x;
 }
@@ -932,9 +931,9 @@ double initialX( double rOn, double rOff, double rInit){
 bool Master::updateState(double * solVec, double * staVec, double * stoVec)
 {
 
-//	if (DEBUG_DEVICE){
-//		Xyce::dout()  << " updateState "  << std::endl;
-//	}
+//  if (DEBUG_DEVICE){
+//    Xyce::dout()  << " updateState "  << std::endl;
+//  }
 
   for (InstanceVector::const_iterator it = getInstanceBegin(); it != getInstanceEnd(); ++it)
   {
@@ -943,60 +942,60 @@ bool Master::updateState(double * solVec, double * staVec, double * stoVec)
     double v_pos    = solVec[ri.li_Pos];
     double v_neg    = solVec[ri.li_Neg];
     double x        = solVec[ri.li_x];
-//		if (DEBUG_DEVICE){
-//			Xyce::dout()  << "  x_before = " <<  x << std::endl;
-//		}
+//    if (DEBUG_DEVICE){
+//      Xyce::dout()  << "  x_before = " <<  x << std::endl;
+//    }
 
 
-		{
-				Sacado::Fad::SFad<double,3> varV1( 3, 0, v_pos );
-				Sacado::Fad::SFad<double,3> varV2( 3, 1, v_neg );
-				Sacado::Fad::SFad<double,3> varX( 3, 2, x );
-				Sacado::Fad::SFad<double,3> resultFad;
-				resultFad = I_V( varV1, varV2, varX, ri.model_.Ron_, ri.model_.Roff_, ri.model_.Phi_, ri.model_.SchottkyForwardAlpha_, ri.model_.SchottkyForwardBeta_, ri.model_.SchottkyReverseAlpha_, ri.model_.SchottkyReverseBeta_ );
+    {
+        Sacado::Fad::SFad<double,3> varV1( 3, 0, v_pos );
+        Sacado::Fad::SFad<double,3> varV2( 3, 1, v_neg );
+        Sacado::Fad::SFad<double,3> varX( 3, 2, x );
+        Sacado::Fad::SFad<double,3> resultFad;
+        resultFad = I_V( varV1, varV2, varX, ri.model_.Ron_, ri.model_.Roff_, ri.model_.Phi_, ri.model_.SchottkyForwardAlpha_, ri.model_.SchottkyForwardBeta_, ri.model_.SchottkyReverseAlpha_, ri.model_.SchottkyReverseBeta_ );
 
-				ri.i0 = resultFad.val(); // current
-				ri.G  = resultFad.dx(0); // di/dv = conductance
-				ri.dIdx = resultFad.dx(2); // di/dx
+        ri.i0 = resultFad.val(); // current
+        ri.G  = resultFad.dx(0); // di/dv = conductance
+        ri.dIdx = resultFad.dx(2); // di/dx
 
-//				if (DEBUG_DEVICE){
-//					Xyce::dout()  << "  ri.i0 = " <<  ri.i0 << std::endl;
-//					Xyce::dout()  << "  ri.G = " <<  ri.G << std::endl;
-//					Xyce::dout()  << "  ri.dIdx = " <<  ri.dIdx << std::endl;
-//				}
-			}
+//        if (DEBUG_DEVICE){
+//          Xyce::dout()  << "  ri.i0 = " <<  ri.i0 << std::endl;
+//          Xyce::dout()  << "  ri.G = " <<  ri.G << std::endl;
+//          Xyce::dout()  << "  ri.dIdx = " <<  ri.dIdx << std::endl;
+//        }
+      }
 
-			{
-				// evaluate the state variable equation
-				Sacado::Fad::SFad<double,3> varV1( 3, 0, v_pos );
-				Sacado::Fad::SFad<double,3> varV2( 3, 1, v_neg );
-				Sacado::Fad::SFad<double,3> varX( 3, 2, x );
-				Sacado::Fad::SFad<double,3> resultFad;
+      {
+        // evaluate the state variable equation
+        Sacado::Fad::SFad<double,3> varV1( 3, 0, v_pos );
+        Sacado::Fad::SFad<double,3> varV2( 3, 1, v_neg );
+        Sacado::Fad::SFad<double,3> varX( 3, 2, x );
+        Sacado::Fad::SFad<double,3> resultFad;
 
-				double vT = 0.026;
+        double vT = 0.026;
         vT = ri.Temp_ * CONSTKoverQ;
 //        if (DEBUG_DEVICE){
 //          Xyce::dout() << "  vT = " << vT << std::endl;
 //        }
-				resultFad = dXdt( varV1, varV2, varX, ri.model_.Ron_, ri.model_.Roff_, ri.model_.Von_, ri.model_.Voff_, ri.model_.Tau_, vT );
+        resultFad = dXdt( varV1, varV2, varX, ri.model_.Ron_, ri.model_.Roff_, ri.model_.Von_, ri.model_.Voff_, ri.model_.Tau_, vT );
 
-				ri.xVarFContribution = resultFad.val();
-				if( getSolverState().dcopFlag )
-				{
-					ri.xVarFContribution = 0;
-				}
-				ri.dxFEqdVpos = resultFad.dx(0);
-				ri.dxFEqdVneg = resultFad.dx(1);
-				ri.dxFEqdx = resultFad.dx(2);
+        ri.xVarFContribution = resultFad.val();
+        if( getSolverState().dcopFlag )
+        {
+          ri.xVarFContribution = 0;
+        }
+        ri.dxFEqdVpos = resultFad.dx(0);
+        ri.dxFEqdVneg = resultFad.dx(1);
+        ri.dxFEqdx = resultFad.dx(2);
 
-//				if (DEBUG_DEVICE){
-//					Xyce::dout()  << "  ri.xVarFContribution = " <<  ri.xVarFContribution << std::endl;
-//					Xyce::dout()  << "  ri.dxFEqdVpos = " <<  ri.dxFEqdVpos << std::endl;
-//					Xyce::dout()  << "  ri.dxFEqdVneg = " <<  ri.dxFEqdVneg << std::endl;
-//					Xyce::dout()  << "  ri.dxFEqdx = " <<  ri.dxFEqdx << std::endl;
-//				}
+//        if (DEBUG_DEVICE){
+//          Xyce::dout()  << "  ri.xVarFContribution = " <<  ri.xVarFContribution << std::endl;
+//          Xyce::dout()  << "  ri.dxFEqdVpos = " <<  ri.dxFEqdVpos << std::endl;
+//          Xyce::dout()  << "  ri.dxFEqdVneg = " <<  ri.dxFEqdVneg << std::endl;
+//          Xyce::dout()  << "  ri.dxFEqdx = " <<  ri.dxFEqdx << std::endl;
+//        }
 
-			}
+      }
 
   }
 
@@ -1034,9 +1033,9 @@ bool Master::updateState(double * solVec, double * staVec, double * stoVec)
 
 bool Master::loadDAEVectors (double * solVec, double * fVec, double *qVec,  double * bVec, double * leadF, double * leadQ, double * junctionV)
 {
-//  	if (DEBUG_DEVICE){
-//  		Xyce::dout()  << "-loadDAEVectors"  << std::endl;
-//  	}
+//    if (DEBUG_DEVICE){
+//      Xyce::dout()  << "-loadDAEVectors"  << std::endl;
+//    }
 
   for (InstanceVector::const_iterator it = getInstanceBegin(); it != getInstanceEnd(); ++it)
   {
@@ -1046,12 +1045,12 @@ bool Master::loadDAEVectors (double * solVec, double * fVec, double *qVec,  doub
     fVec[ri.li_x]   += ri.xVarFContribution;
     qVec[ri.li_x]   -= solVec[ri.li_x];
     if( getSolverState().dcopFlag )
-		{
-    	double x = initialX(ri.model_.Ron_, ri.model_.Roff_, ri.rInit_);
+    {
+      double x = initialX(ri.model_.Ron_, ri.model_.Roff_, ri.R_init_);
       qVec[ri.li_x] += x;
-//			if (DEBUG_DEVICE){
-//				Xyce::dout()  << "DCOP x = "  << x  << std::endl;
-//			}
+//      if (DEBUG_DEVICE){
+//        Xyce::dout()  << "DCOP x = "  << x  << std::endl;
+//      }
     }
     if( ri.G != 0 )
     {
@@ -1098,9 +1097,9 @@ bool Master::loadDAEVectors (double * solVec, double * fVec, double *qVec,  doub
 bool Master::loadDAEMatrices(Linear::Matrix & dFdx, Linear::Matrix & dQdx)
 {
 
-//  	if (DEBUG_DEVICE){
-//  		Xyce::dout()  << "-loadDAEMatrices"  << std::endl;
-//  	}
+//    if (DEBUG_DEVICE){
+//      Xyce::dout()  << "-loadDAEMatrices"  << std::endl;
+//    }
 
   for (InstanceVector::const_iterator it = getInstanceBegin(); it != getInstanceEnd(); ++it)
   {

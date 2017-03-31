@@ -222,7 +222,7 @@ private:
   Model &     model_;                 //< Owning model
 
   // User-specified parameters:
-  double      rInit_;
+  double      R_init_;
   double      Temp_; // instance temperature (TEMP)
 
   // Derived parameters:

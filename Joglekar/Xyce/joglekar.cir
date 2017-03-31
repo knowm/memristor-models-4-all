@@ -3,13 +3,13 @@ V1 1 0 SIN(0V 1.2V 1Hz)
 *V1 1 0 SIN(0V .4V 100Hz)
 
 * Memristors
-YJOGLEKAR mr1 1 0 mrm1 R_init=11000
+YMEMRISTOR mr1 1 0 mrm1 R_init=11000
 
-.MODEL mrm1 joglekar (level=1 Roff=16000 Ron=100 D=10e-9 uv=10e-15 p=2.0)
+.MODEL mrm1 memristor (level=4 Roff=16000 Ron=100 D=10e-9 uv=10e-15 p=2.0)
 
 * Analysis Command
 .TRAN 10ns 1s
 * Output
-.PRINT TRAN V(1) I(V1) N(YJOGLEKAR!mr1:R)
+.PRINT TRAN V(1) I(V1) N(YMEMRISTOR!mr1:R)
 
 .END

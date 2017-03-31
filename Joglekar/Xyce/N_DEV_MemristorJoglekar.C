@@ -53,12 +53,12 @@ namespace MemristorJoglekar {
 template <typename ScalarT>
 ScalarT JogelkarWindowFunction( const ScalarT & X, double P )
 {
-	ScalarT fval = 1.0 - pow( (2.0*X - 1.0), (2*P) );
-		if (DEBUG_DEVICE){
-			Xyce::dout()  << "  P = " <<  P << std::endl;
-			Xyce::dout()  << "  X = " <<  X << std::endl;
-		}
-		return fval;
+  ScalarT fval = 1.0 - pow( (2.0*X - 1.0), (2*P) );
+    // if (DEBUG_DEVICE){
+    //   Xyce::dout()  << "  P = " <<  P << std::endl;
+    //   Xyce::dout()  << "  X = " <<  X << std::endl;
+    // }
+    return fval;
 }
 
 
@@ -66,7 +66,7 @@ ScalarT JogelkarWindowFunction( const ScalarT & X, double P )
 template <typename ScalarT>
 ScalarT Reff( const ScalarT & X, double RON, double ROFF )
 {
-	return RON * X  + ROFF * (1 - X);
+  return RON * X  + ROFF * (1 - X);
 }
 
 
@@ -74,10 +74,9 @@ template <typename ScalarT>
 ScalarT X_var_F( const ScalarT & V1, const ScalarT & V2, const ScalarT & X, double UV, double RON, double ROFF, double D, double P)
 {
 
-	ScalarT Rval =	Reff( X, RON, ROFF );
+  ScalarT Rval =  Reff( X, RON, ROFF );
 
-	ScalarT Windowval =	JogelkarWindowFunction(X, P );
-
+  ScalarT Windowval = JogelkarWindowFunction(X, P );
 
   return UV*RON/D/D/Rval*(V1-V2)*Windowval;
 }
@@ -86,16 +85,16 @@ ScalarT X_var_F( const ScalarT & V1, const ScalarT & V2, const ScalarT & X, doub
 template <typename ScalarT>
 ScalarT I_V( const ScalarT & V1, const ScalarT & V2, const ScalarT & X, double RON, double ROFF ){
 
-	ScalarT Rval=	Reff( X, RON, ROFF );
+  ScalarT Rval= Reff( X, RON, ROFF );
 
-	return (V1-V2)/Rval;
+  return (V1-V2)/Rval;
 
-//	if (DEBUG_DEVICE){
-//		Xyce::dout()  << "  REFF = " <<  ( RON * X  + ROFF * (1 - X)) << std::endl;
-//		Xyce::dout()  << "  REFF2 = " <<  (1 - X) << std::endl;
-//		Xyce::dout()  << "  RON = " <<  RON << std::endl;
-//		Xyce::dout()  << "  ROFF = " <<  ROFF << std::endl;
-//	}
+//  if (DEBUG_DEVICE){
+//    Xyce::dout()  << "  REFF = " <<  ( RON * X  + ROFF * (1 - X)) << std::endl;
+//    Xyce::dout()  << "  REFF2 = " <<  (1 - X) << std::endl;
+//    Xyce::dout()  << "  RON = " <<  RON << std::endl;
+//    Xyce::dout()  << "  ROFF = " <<  ROFF << std::endl;
+//  }
 }
 
 
@@ -258,7 +257,7 @@ Instance::Instance(
   const FactoryBlock &  factory_block)
   : DeviceInstance(instance_block, configuration.getInstanceParameters(), factory_block),
     model_(model),
-	  R_init_(0.0),
+    R_init_(0.0),
     G(0.0),
     i0(0.0),
     li_Pos(-1),
@@ -339,13 +338,13 @@ bool Instance::processParams()
 
   // initialize X state (width between 0 and 1 and scaled to D)
   if (!given("R_init")){
-	  R_init_ = model_.Roff_;
+    R_init_ = model_.Roff_;
   }
 
-	if (DEBUG_DEVICE){
-		Xyce::dout()  << "----------Instance::processParams"  << std::endl;
+  if (DEBUG_DEVICE){
+    Xyce::dout()  << "----------Instance::processParams"  << std::endl;
         Xyce::dout()  << " R_init_  = " << R_init_ << std::endl;
-	}
+  }
 
   return true;
 }
@@ -724,11 +723,11 @@ Model::Model(
   const ModelBlock &    model_block,
   const FactoryBlock &  factory_block)
   : DeviceModel(model_block, configuration.getModelParameters(), factory_block),
-	Roff_(0.0),
-	Ron_(0.0),
-	D_(0.0),
-	uv_(0.0),
-	p_(0.0)
+  Roff_(0.0),
+  Ron_(0.0),
+  D_(0.0),
+  uv_(0.0),
+  p_(0.0)
 {
   // Set params to constant default values.
   setDefaultParams();
@@ -856,9 +855,9 @@ void Model::forEachInstance(DeviceInstanceOp &op) const /* override */
 bool Master::updateState(double * solVec, double * staVec, double * stoVec)
 {
 
-//	if (DEBUG_DEVICE){
-//		Xyce::dout()  << " updateState "  << std::endl;
-//	}
+//  if (DEBUG_DEVICE){
+//    Xyce::dout()  << " updateState "  << std::endl;
+//  }
 
   for (InstanceVector::const_iterator it = getInstanceBegin(); it != getInstanceEnd(); ++it)
   {
@@ -869,15 +868,15 @@ bool Master::updateState(double * solVec, double * staVec, double * stoVec)
     double x        = solVec[ri.li_x];
 
     // handle boundary conditions - ugly hack
-		if(x <= 0){
-			x = 0.001;
-		}else if(x >= 1){
-			x = 1 - 0.001;
-		}
+    if(x <= 0){
+      x = 0.001;
+    }else if(x >= 1){
+      x = 1 - 0.001;
+    }
 
-		if (DEBUG_DEVICE){
-			Xyce::dout()  << "  x = " <<  x << std::endl;
-		}
+    if (DEBUG_DEVICE){
+      Xyce::dout()  << "  x = " <<  x << std::endl;
+    }
 
     {
           Sacado::Fad::SFad<double,3> varV1( 3, 0, v_pos );
@@ -890,11 +889,11 @@ bool Master::updateState(double * solVec, double * staVec, double * stoVec)
           ri.G  = resultFad.dx(0); // di/dv = conductance
           ri.dIdx = resultFad.dx(2); // di/dx
 
-//        	if (DEBUG_DEVICE){
-//        		Xyce::dout()  << "  ri.i0 = " <<  ri.i0 << std::endl;
-//        		Xyce::dout()  << "  ri.G = " <<  ri.G << std::endl;
-//        		Xyce::dout()  << "  ri.dIdx = " <<  ri.dIdx << std::endl;
-//        	}
+//          if (DEBUG_DEVICE){
+//            Xyce::dout()  << "  ri.i0 = " <<  ri.i0 << std::endl;
+//            Xyce::dout()  << "  ri.G = " <<  ri.G << std::endl;
+//            Xyce::dout()  << "  ri.dIdx = " <<  ri.dIdx << std::endl;
+//          }
         }
 
         {
@@ -911,12 +910,12 @@ bool Master::updateState(double * solVec, double * staVec, double * stoVec)
           ri.dxFEqdVneg = resultFad.dx(1);
           ri.dxFEqdx = resultFad.dx(2);
 
-//					if (DEBUG_DEVICE){
-//						Xyce::dout()  << "  ri.xVarFContribution = " <<  ri.xVarFContribution << std::endl;
-//						Xyce::dout()  << "  ri.dxFEqdVpos = " <<  ri.dxFEqdVpos << std::endl;
-//						Xyce::dout()  << "  ri.dxFEqdVneg = " <<  ri.dxFEqdVneg << std::endl;
-//						Xyce::dout()  << "  ri.dxFEqdx = " <<  ri.dxFEqdx << std::endl;
-//					}
+//          if (DEBUG_DEVICE){
+//            Xyce::dout()  << "  ri.xVarFContribution = " <<  ri.xVarFContribution << std::endl;
+//            Xyce::dout()  << "  ri.dxFEqdVpos = " <<  ri.dxFEqdVpos << std::endl;
+//            Xyce::dout()  << "  ri.dxFEqdVneg = " <<  ri.dxFEqdVneg << std::endl;
+//            Xyce::dout()  << "  ri.dxFEqdx = " <<  ri.dxFEqdx << std::endl;
+//          }
 
         }
 
@@ -951,9 +950,9 @@ bool Master::updateState(double * solVec, double * staVec, double * stoVec)
 
 bool Master::loadDAEVectors (double * solVec, double * fVec, double *qVec,  double * bVec, double * leadF, double * leadQ, double * junctionV)
 {
-//  	if (DEBUG_DEVICE){
-//  		Xyce::dout()  << "-loadDAEVectors"  << std::endl;
-//  	}
+//    if (DEBUG_DEVICE){
+//      Xyce::dout()  << "-loadDAEVectors"  << std::endl;
+//    }
 
   for (InstanceVector::const_iterator it = getInstanceBegin(); it != getInstanceEnd(); ++it)
   {
@@ -965,9 +964,9 @@ bool Master::loadDAEVectors (double * solVec, double * fVec, double *qVec,  doub
     if( getSolverState().dcopFlag )
     {
       qVec[ri.li_x] -= ((ri.model_.Roff_ - ri.R_init_) / (ri.model_.Roff_ - ri.model_.Ron_)) ;
-		if (DEBUG_DEVICE){
-			Xyce::dout()  << " &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  dcopFlag = "  << ((ri.model_.Roff_ - ri.R_init_) / (ri.model_.Roff_ - ri.model_.Ron_))<< std::endl;
-		}
+    // if (DEBUG_DEVICE){
+    //   Xyce::dout()  << " &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  dcopFlag = "  << ((ri.model_.Roff_ - ri.R_init_) / (ri.model_.Roff_ - ri.model_.Ron_))<< std::endl;
+    // }
     }
     if( ri.G != 0 )
     {
@@ -1010,9 +1009,9 @@ bool Master::loadDAEVectors (double * solVec, double * fVec, double *qVec,  doub
 bool Master::loadDAEMatrices(Linear::Matrix & dFdx, Linear::Matrix & dQdx)
 {
 
-//  	if (DEBUG_DEVICE){
-//  		Xyce::dout()  << "-loadDAEMatrices"  << std::endl;
-//  	}
+//    if (DEBUG_DEVICE){
+//      Xyce::dout()  << "-loadDAEMatrices"  << std::endl;
+//    }
 
   for (InstanceVector::const_iterator it = getInstanceBegin(); it != getInstanceEnd(); ++it)
   {
