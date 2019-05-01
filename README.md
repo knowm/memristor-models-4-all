@@ -1,10 +1,22 @@
 ## Introduction
 
-This project aims to be a collaborative effort to collect under one roof all the memristor models published to date. We welcome contribution of your own models or implementations of other people's models. We also welcome any suggestions and/or corrections. This is a collaborative effort. 
+*WE DO NOT PROVIDE FREE TECHNICAL SUPPORT* 
+
+This project aims to be a collaborative effort to collect under one roof memristor models published to date. We welcome contribution of your own models or implementations of other people's models. We also welcome any suggestions and/or corrections. This is a collaborative effort. 
+
+There is no single definitive model of any memristor. Due to the fact that most memristor researchers do not provide their devices to others for test, models that currently exist in the literature are only accurate within limited ranges usually defined by the circuit the are a part of. 
 
 This project may be useful for you whether you are trying to simulate other people's existing models or as a way to start your own model development, as these working examples can help get you up to speed quickly. If it was useful for you please consider adding your own working example by submitting a pull request with the model files and a README file. We hope that eventually this repository can be used to quantitatively compare and benchmark memristor models in terms of model accuracy, model robustness and simulation speed to name a few possibilities.
 
-*WE DO NOT PROVIDE FREE TECHNICAL SUPPORT* 
+## Meta Stable Switch Memristor Model
+
+The MSS model was developed before the Knowm memristors were created. It is a general memristor model that can be tuned to model a wide range of devices, from deterministic to probabolistic and binary to continuous. However, it has its own limitations just as all other models currently do. You should feel free to use and adapt any memristor model to fit memristors that you can measure. You can find more information on the generalized MSS model here:
+
+https://knowm.org/the-generalized-metastable-switch-memristor-model/
+
+Information on the 'mean field' continuous version can be found here:
+
+https://knowm.org/the-mean-metastable-switch-memristor-model-in-xyce/
 
 ## Model Classes
 
